@@ -1,1 +1,23 @@
-NS goes here
+# This is a simple ns script. Comments start with #.
+set ns [new Simulator]                  
+source tb_compat.tcl
+
+#Set up nodes
+set Victim [$ns node]
+set Proxy [$ns node]
+set Attack [$ns node]
+
+
+#Set routing
+set link0 [$ns duplex-link $Proxy $Attack 100Mb 50ms DropTail]
+set link1 [$ns duplex-link $Victim $Proxy 100Mb 50ms DropTail]
+set link2 [$ns duplex-link $Attack $Victim 100Mb 50ms DropTail]
+$ns rtproto Static
+
+# Set the OS on a couple.
+tb-set-node-os $Attack KALI-RLG
+tb-set-node-os $Proxy Ubuntu1604-STD         
+tb-set-node-os $Victim Ubuntu1604-STD
+
+# Go!
+$ns run 
