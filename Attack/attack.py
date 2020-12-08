@@ -145,7 +145,7 @@ def main():
         print("--> ", atck.atName, "-", atck.atSuccess)
         if atck.atSuccess: sucCount+=1
     print("Attack results (", sucCount, "/", totCount, ")")
-    
+    session.close
 
 
 if __name__ == "__main__":
